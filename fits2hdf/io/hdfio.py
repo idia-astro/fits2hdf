@@ -56,8 +56,12 @@ def write_headers(hduobj, idiobj, verbosity=0):
         if is_comment or is_table or is_basic or is_hdf:
             pass
         else:
-            hduobj.attrs[key] = np.array([value])
-            hduobj.attrs[key+"_COMMENT"] = np.array([comment])
+            attrVal = np.array([value])
+            if attrVal.dtype.kind in {'U', 'S'}:
+                hduobj.attrs[key] = np.string_(value)
+            else:
+                hduobj.attrs[key] = attrVal
+            hduobj.attrs[key+"_COMMENT"] = np.string_(comment)
     return hduobj
 
 def read_hdf(infile, mode='r+', verbosity=0):
@@ -338,6 +342,6 @@ def export_hdf(idi_hdu, outfile, table_type='DATA_GROUP', **kwargs):
                 unicode_dt = h5py.special_dtype(vlen=str)
 
             if idi_hdu[gkey].comment:
-                gg.create_dataset("COMMENT", data=idi_hdu[gkey].comment, dtype=unicode_dt)
+                gg.create_dataset("COMMENT", data=np.string_(idi_hdu[gkey].comment), dtype=unicode_dt)
             if idi_hdu[gkey].history:
-                gg.create_dataset("HISTORY", data=idi_hdu[gkey].history, dtype=unicode_dt)
+                gg.create_dataset("HISTORY", data=np.string_(idi_hdu[gkey].history), dtype=unicode_dt)
